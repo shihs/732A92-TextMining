@@ -31,7 +31,7 @@ class Requester():
         self.proxies = {}
 
     def get_request(self, url, user_agent=True):
-    
+        
         if user_agent:
             return requests.get(url, headers={'User-Agent': random.choice(self.USER_AGENTS)}, proxies=self.proxies)
         return requests.get(url, proxies=self.proxies) 

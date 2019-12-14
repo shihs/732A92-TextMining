@@ -2,12 +2,20 @@ from azlyrics import Song
 import csv
 from langdetect import detect
 import time
+import os
+from os import listdir
 
 
 
 
 
 def open_file(file_name):
+    '''save the song and artist data to a list
+    args:
+        file_name: string, the name of the file
+    return:
+        song_list: list, save all the song and artist in the file
+    '''
     song_list = []
     with open(file_name) as f:
         for i in f.readlines()[1:]:
@@ -19,11 +27,26 @@ def open_file(file_name):
 
 
 def save_file(file_name, save_list):
-    '''saving file
+    '''saving the final result list
     '''
     with open(file_name, "w") as f:
         w = csv.writer(f)
         w.writerows(save_list)
+
+
+def crawled_songs(path, keyword):
+    urls = []
+    files = [file for file in listdir(path) if file.startswith(keyword)]
+    # print (files)
+    for file in files:
+        with open(path + file) as f:
+            csv_reader = csv.reader(f, delimiter=',')
+            for row in csv_reader:
+                urls.append(row[2])
+    return urls
+
+
+
 
 
 
@@ -42,7 +65,14 @@ def save_file(file_name, save_list):
 #     return song_url, lyrics, song_year
 
 
+
 def main(file_name, start, end):
+    '''run the crawling process
+    args:
+        file_name: string, the name of file with song and artist data
+        start: integer, the number of the start (index + 1) for crawling song
+        end: integer, the number of the end (index + 1) for crawling song. If end = -1, it will crawl from start to the end
+    '''
     
     # open the song list file
     song_list = open_file(file_name)
@@ -67,6 +97,9 @@ def main(file_name, start, end):
 
         # detect if the song is english. 
         # only guess from the song name, it can be wrong, just fast checking
+        # update: found out the detect() skips many english song's names :((
+        # but if find any better library, the code can be replaced here!
+        # better not sending too many requests!
         # if detect(song) != "en":
         # 	continue
         
@@ -88,7 +121,7 @@ def main(file_name, start, end):
             # print (song_url, lyrics, song_year)
         
         except:
-            file_name = file_name.split(".csv")[0] + "_" + str(start) + "_" + str(i+1) + "_lyrics.csv"
+            file_name = "../lyrics/"+ file_name.split("/")[2].replace(".csv", "") + "_" + str(start) + "_" + str(i+1) + "_lyrics.csv"
             save_file(file_name, song_info)
             break
 
@@ -96,6 +129,7 @@ def main(file_name, start, end):
             song_info.append([song, artist, song_url, lyrics, song_year])
         print ("--------------------------------------------")
 
+        # avoid being banned QQ
         if count % 20 == 0:
         	print ("Sleep a minute......be patient:)............")
         	time.sleep(60)
@@ -103,9 +137,14 @@ def main(file_name, start, end):
         count += 1
 
 
-
+    # saving file name: "[mood]_[start]_[end]_lyrics.csv"
+    # it's quite easy to be banned... so record the start and end index for every saving file
     file_name = "../lyrics/"+ file_name.split("/")[2].replace(".csv", "") + "_" + str(start) + "_" + str(i+1) + "_lyrics.csv"
     save_file(file_name, song_info)
+
+
+
+
 
 
 
@@ -114,11 +153,9 @@ def main(file_name, start, end):
 if __name__ == "__main__":
 
 	file_name = "../data/happy.csv"
-	main(file_name, 601, 1000)
-	# main()
+	main(file_name, 1501, -1)
+	# final_check("happy")
+	
 
 
-    # song_url, lyrics, song_year = crawler(artist='kendrick lamar', song='humble')
-    # print (song_url, lyrics, song_year)
-    
 
